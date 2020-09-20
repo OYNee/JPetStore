@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.AdMapper">
+
+<cache/>
+
+ <insert parameterType="Advertisement" id="insertAd"> 
+  INSERT INTO ADVERTISEMENT
+   (AD_ID, FAVCATEGORY, ITEMID, TITLE, IMAGE, START_DATE, END_DATE, AD_PRICE) 
+  VALUES 
+   (SEQ_BANNER.nextval, #{favCategory}, #{itemid}, #{title}, #{image}, TO_DATE(#{startDate},'YYYY-MM-DD hh24:mi:ss'), TO_DATE(#{endDate},'YYYY-MM-DD hh24:mi:ss'), #{bannerPrice}) 
+ </insert>
+ 
+ <select resultType="Advertisement" id="getApprovalList" useCache="false">
+  SELECT
+  	ITEM.SELLER AS seller,
+  	ITEM.ITEMID AS itemid,
+  	START_DATE AS startDate,
+  	END_DATE AS endDate,
+  	ADVERTISEMENT.IMAGE,
+  	ADVERTISEMENT.TITLE
+  FROM ADVERTISEMENT, ITEM
+  WHERE
+  	ITEM.ITEMID = ADVERTISEMENT.ITEMID
+  	AND ITEM.ISAD = '1'
+ </select>
+
+ <select resultType="Advertisement" id="advertise">
+  SELECT
+   ITEM.ITEMID, FAVCATEGORY, TITLE, DES AS description, ADVERTISEMENT.IMAGE
+  FROM
+   ADVERTISEMENT, ITEM
+  WHERE
+   ITEM.ITEMID = ADVERTISEMENT.ITEMID 
+   AND ITEM.ISAD = '2' 
+   <![CDATA[
+   AND to_char(start_date,'YYYYMMDD') <= #{today}
+   AND to_char(end_date,'YYYYMMDD') >= #{today}
+   ]]>
+ </select>
+
+ <select resultType="Advertisement" id="favAdvertise">
+   SELECT
+   ITEM.ITEMID, FAVCATEGORY, TITLE, DES AS description, ADVERTISEMENT.IMAGE
+  FROM
+   ADVERTISEMENT, ITEM
+  WHERE
+   ITEM.ITEMID = ADVERTISEMENT.ITEMID 
+   AND ADVERTISEMENT.FAVCATEGORY = #{favcategory}
+   AND ITEM.ISAD = '2' 
+   <![CDATA[
+   AND to_char(start_date,'YYYYMMDD') <= #{today}
+   AND to_char(end_date,'YYYYMMDD') >= #{today}
+   ]]>
+ </select>
+ 
+ <delete id="deleteAdByItemId"><!-- 나중에 itemid로 지우면 전의 광고내역이 사라지는 문제점을 해결하고 싶으면 adid로 삭제하기 -->
+   DELETE FROM ADVERTISEMENT
+   WHERE itemid = #{itemId}
+ </delete>
+
+</mapper>

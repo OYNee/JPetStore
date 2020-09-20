@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.AnswerMapper">
+
+  <cache />
+
+  
+  <select id="getAnswer" resultType="Answer" useCache="false">
+  SELECT
+      ANSWERID,
+      QUESTIONID,
+      ANSWER_WRITER AS answerWriter,
+      CONTENT,
+      DATE_TIME
+    FROM ANSWER
+    WHERE QUESTIONID = #{questionId}
+  </select>
+  
+  <insert id="insertAnswer" parameterType="Answer">
+   INSERT INTO ANSWER (ANSWERID, QUESTIONID, ANSWER_WRITER, CONTENT, DATE_TIME)
+  VALUES (#{answerId}, #{questionId}, #{answerWriter}, #{content}, #{date_time})
+  </insert>
+
+
+</mapper>

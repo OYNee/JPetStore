@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 시라씨 -->
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.AuctionItemMapper">
+  <cache />
+  
+  <!-- 20180620 경매에 맞게 수정 -->
+	<insert id="insertAuctionItem" parameterType="AuctionItem">
+    INSERT INTO ITEM (ITEMID, PRODUCTID, CATID, SELLER, STATUS, 
+    					ATTR1, ATTR2, ATTR3, ATTR4, ATTR5, ISAUCTION, ISAD, IMAGE, ITEMTITLE)
+    VALUES (#{itemId}, #{productId}, #{categoryId}, 
+    	  #{seller}, #{status}, #{attribute1, jdbcType=VARCHAR}, #{attribute2, jdbcType=VARCHAR}, #{attribute3, jdbcType=VARCHAR}, #{attribute4, jdbcType=VARCHAR}, #{attribute5, jdbcType=VARCHAR},
+    	   #{isAuction}, #{isAd}, #{image, jdbcType=VARCHAR}, #{itemTitle})
+  	</insert>
+  	
+  	<insert id="insertAuction" parameterType="AuctionItem">
+  	INSERT INTO AUCTION (AUCTIONID, ITEMID, SELLER, START_PRICE, START_DATE, END_DATE)
+  	VALUES (#{auctionId}, #{itemId}, #{seller}, #{startPrice}, #{startDate},
+  	#{lastDate})
+  	</insert>
+  
+
+  
+  <!-- 180621 Auction 상세보기 -->
+  <!-- 180623 QTY 추가 -->
+  <select id="getAuctionItem" resultType="AuctionItem" useCache="false">
+  
+  SELECT
+      I.ITEMID,
+      I.PRODUCTID,
+      I.SELLER,
+      START_PRICE AS startPrice,
+      START_DATE AS startDate,
+      END_DATE AS lastDate,
+      I.PRODUCTID AS "product.productId",
+      NAME AS "product.name",
+      DESCR AS "product.description",
+      I.CATID AS "product.categoryId",
+      STATUS,
+      ATTR1 AS attribute1,
+      ATTR2 AS attribute2,
+      ATTR3 AS attribute3,
+      ATTR4 AS attribute4,
+      ATTR5 AS attribute5,
+      Image,
+      ISAUCTION,
+      ISAD,
+      ITEMTITLE,
+      AUCTIONID,
+      QTY AS quantity
+    FROM ITEM I, PRODUCT P, AUCTION A, INVENTORY 
+    WHERE P.PRODUCTID = I.PRODUCTID
+      AND I.ITEMID = A.ITEMID
+      AND I.ITEMID = INVENTORY.ITEMID
+      AND I.ITEMID = #{value}
+  
+  
+  </select>
+  
+  <!-- 180621 입찰/낙찰 관련 -->
+  <select id="getBidByAuctionId" resultType="Bid" useCache="false">
+    SELECT
+      BIDDER AS bidder,
+      BID_PRICE
+    FROM BID
+	WHERE
+	  AUCTIONID = #{auctionId} ORDER BY BID_PRICE DESC
+	
+  </select>
+  
+  <update id="updateBid">
+    UPDATE BID
+    SET BID_PRICE = #{ price }
+    WHERE BIDDER = #{ bidder }
+  </update>
+  
+  <insert id="insertBid" parameterType="Bid" >
+    INSERT INTO BID (BIDID, AUCTIONID, BIDDER, BID_DATE, BID_PRICE)
+    VALUES (SEQ_BID.NEXTVAL, #{ auction_id }, #{ bidder }, TO_DATE(#{bid_date},'YYYY-MM-DD hh24:mi:ss'), #{ bid_price })
+  </insert>
+  
+  <delete id="deleteBid" >
+    DELETE FROM BID
+    WHERE AUCTIONID=#{auctionId} AND BIDDER=#{bidder}
+  </delete>
+  
+  <delete id="endAuctionBySeller" >
+    UPDATE AUCTION
+    SET END_DATE = SYSDATE
+    WHERE AUCTIONID=#{auctionId}
+  </delete>
+  
+  <select id="getHighestBidder" resultType="Bid">
+    SELECT BIDDER, BID_PRICE
+    FROM
+    (SELECT BIDDER, BID_PRICE, AUCTIONID FROM BID ORDER BY BID_PRICE DESC)
+    WHERE AUCTIONID=#{auctionId} AND ROWNUM=1
+  </select>
+  
+  <!-- 180623 -->
+  
+  <insert id="insertQuantity" parameterType="AuctionItem">
+	INSERT INTO INVENTORY (ITEMID, QTY)
+	VALUES (#{itemId}, #{quantity})
+	</insert>
+	
+	<update id="updateAuctionItem" parameterType="AuctionItem">
+	UPDATE ITEM
+  <set>
+      <if test="attribute1 != null">ATTR1=#{attribute1},</if>
+      <if test="attribute2 != null">ATTR2=#{attribute2},</if>
+      <if test="attribute3 != null">ATTR3=#{attribute3},</if>
+      <if test="attribute4 != null">ATTR4=#{attribute4},</if>
+      <if test="attribute5 != null">ATTR5=#{attribute5},</if>
+      <if test="itemTitle != null">ITEMTITLE=#{itemTitle}</if>  
+    </set>
+  where ITEMID = #{itemId}
+	</update>
+	
+	<update id="updateQuantity" parameterType="AuctionItem">
+		UPDATE INVENTORY
+	  <set>
+	      <if test="quantity != null">QTY=#{quantity}</if>
+	  </set>
+	  where ITEMID = #{itemId}
+	</update>
+	
+	<update id="updateAuctionInfo" parameterType="AuctionItem">
+		UPDATE AUCTION
+	  <set>
+	      <if test="startPrice != null">START_PRICE=#{startPrice},</if>
+	      <if test="startDate != null">START_DATE=TO_DATE(#{startDate}, 'YYYY-MM-DD hh24:mi:ss'),</if>
+	      <if test="lastDate != null">END_DATE=TO_DATE(#{lastDate}, 'YYYY-MM-DD hh24:mi:ss')</if> 
+	    </set>
+	  where ITEMID = #{itemId}
+	
+	</update>
+	
+	<!-- 0625 -->
+	 <select id="getHighestBidForProduct" resultType="int">
+    SELECT
+      MAX(BID_PRICE)
+    FROM BID
+    WHERE AUCTIONID = #{auctionId}
+  </select>
+
+</mapper>

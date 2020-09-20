@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.ProductMapper">
+
+  <cache />
+
+  <select id="getProduct" resultType="Product">
+    SELECT
+      PRODUCTID,
+      NAME,
+      DESCR as description,
+      CATID as categoryId
+    FROM PRODUCT
+    WHERE PRODUCTID = #{productId}
+  </select>
+
+  <select id="getProductListByCategory" resultType="Product">
+    SELECT
+      PRODUCTID,
+      NAME,
+      DESCR as description,
+      CATID as categoryId
+    FROM PRODUCT
+    WHERE CATID = #{value}
+  </select>
+  
+  <!-- 시라씨 부분 -->
+<select resultType="Product" id="searchProductList"> select PRODUCTID, NAME, DESCR as description, CATID as categoryId from PRODUCT WHERE lower(name) like #{value} </select>
+
+<select resultType="Product" id="productNameList"> SELECT NAME FROM PRODUCT WHERE CATID = #{categoryId} </select>
+
+<select resultType="String" id="getProductIdByName"> SELECT PRODUCTID FROM PRODUCT WHERE NAME = #{name} </select>
+</mapper>

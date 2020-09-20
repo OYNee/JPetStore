@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.LetterMapper">
+  <cache />
+  <resultMap id="Letter" type="com.example.jpetstore.domain.Letter" />
+  <resultMap id="Account" type="com.example.jpetstore.domain.Account" />
+	<!--페이지별 조회  -->
+	<select id="selectLetterByPage" resultMap="Letter">
+	select X.rnum,X.letterid, X.sender, X.receiver, X.title, X.content, X.datetime, X.receivedDate
+    from(
+       SELECT rownum as rnum,A.letterid, A.sender, A.receiver, A.title, A.content, A.datetime, A.receivedDate
+       from(SELECT letterid, sender, receiver, title, content, datetime, received_date as receivedDate
+			FROM letter         
+			where sender like '%'||#{loginID}||'%' or receiver like '%'||#{loginID}||'%' 
+        ORDER BY 1)A
+        where rownum&lt;=#{endNum})X
+    where x.rnum&gt;#{startNum}
+	</select>
+
+	<!--검색 세는것 -->
+	<select id="selectBySearchWord" parameterType="Map" resultMap="Letter">
+	    SELECT
+			*
+		FROM
+		    letter
+		where  (sender like '%'||#{loginID}||'%' or receiver like '%'||#{loginID}||'%' )and (content like '%'||#{searchLetter}||'%' or title like '%'||#{searchLetter}||'%' or datetime like '%'||#{searchLetter}||'%')
+	
+	</select>	
+	<!--전체쪽지수 세는것 -->
+	<select id="countAllLetter" resultType="int"
+		parameterType="map">
+		SELECT COUNT(*) count
+		FROM letter
+		WHERE
+		sender like '%'||#{loginID}||'%' or receiver like '%'||#{loginID}||'%'
+	</select>
+	
+	<!--쪽지 입력   -->
+	<insert id="insertLetter" parameterType="Letter">
+		INSERT INTO Letter( letterid, sender, receiver, title, content, datetime ) 
+		VALUES ( seq_letter.nextval,#{sender, jdbcType=VARCHAR}, #{receiver, jdbcType=VARCHAR}, #{title, jdbcType=VARCHAR}, #{content, jdbcType=VARCHAR}, TO_char(sysdate,'YYYY-MM-DD HH24:MI:SS'))
+	</insert>
+	
+	<!--쪽지 작성시 보낼사람 검색결과 가져오기  -->
+	  <select id="findListById" parameterType="String" resultType="Account">
+		SELECT userid as user_id, password, user_category, email
+		FROM account
+	    WHERE USERID like '%'||#{loginID}||'%'
+  </select>
+</mapper>

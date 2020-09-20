@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.MileageMapper">
+
+  <cache />
+
+  <select id="getMileageListByUsername" resultType="Mileage">
+    SELECT
+      DATETIME,
+      POINT,
+      DESCRIPTION
+    FROM MILEAGE
+    WHERE USERID = #{username}
+      ORDER BY DATETIME DESC
+  </select>
+  
+  <insert id="insertMileageHistory" parameterType="Mileage">
+    INSERT INTO MILEAGE(MILEAGEID, USERID, DATETIME, POINT, DESCRIPTION)
+    VALUES(seq_mileage.nextval, #{user_id}, sysdate, #{point}, #{description})
+  </insert>
+  
+
+</mapper>

@@ -1,0 +1,5 @@
+eclipse.preferences.version=1
+encoding//src/main/java/com/example/jpetstore/dao/BlackListDao.java=UTF-8
+encoding//src/main/java/com/example/jpetstore/dao/ItemDao.java=UTF-8
+encoding//src/main/java/com/example/jpetstore/dao/mybatis/MybatisItemDao.java=UTF-8
+encoding//src/main/webapp/WEB-INF/web.xml=UTF-8

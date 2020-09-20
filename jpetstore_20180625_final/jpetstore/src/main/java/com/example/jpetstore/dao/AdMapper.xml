@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.AdMapper">
+
+<cache/>
+
+ <insert parameterType="Advertisement" id="insertAd"> 
+  INSERT INTO BANNER 
+   (BANNERID, FAVCATEGORY, ITEMID, TITLE, IMAGE, START_DATE, STOP_DATE) 
+  VALUES 
+   (SEQ_BANNER.nextval, #{favCategory}, #{itemid}, #{title}, #{image}, TO_DATE(#{startDate},'YYYY-MM-DD hh24:mi:ss'), TO_DATE(#{endDate},'YYYY-MM-DD hh24:mi:ss')) 
+ </insert>
+ 
+ <select resultType="Advertisement" id="getApprovalList">
+  SELECT
+  	ITEM.SELLER AS seller,
+  	ITEM.ITEMID AS itemid,
+  	START_DATE AS startDate,
+  	STOP_DATE AS endDate,
+  	BANNER.IMAGE,
+  	BANNER.TITLE
+  FROM BANNER, ITEM
+  WHERE
+  	ITEM.ITEMID = BANNER.ITEMID
+  	<![CDATA[AND ITEM.ISBANNER = '1']]>
+ </select>
+
+ <select resultType="Advertisement" id="advertise">
+  SELECT
+   ITEM.ITEMID, FAVCATEGORY, TITLE, DES AS description, BANNER.IMAGE
+  FROM
+   BANNER, ITEM
+  WHERE
+   ITEM.ITEMID = BANNER.ITEMID 
+   AND ITEM.ISBANNER = '2' 
+   <![CDATA[
+   AND to_char(start_date,'YYYYMMDD') <= #{today}
+   AND to_char(stop_date,'YYYYMMDD') >= #{today}
+   ]]>
+ </select>
+
+ <select resultType="Advertisement" id="favAdvertise">
+   SELECT
+   ITEM.ITEMID, FAVCATEGORY, TITLE, DES AS description, BANNER.IMAGE
+  FROM
+   BANNER, ITEM
+  WHERE
+   ITEM.ITEMID = BANNER.ITEMID 
+   AND BANNER.FAVCATEGORY = #{favcategory}
+   AND ITEM.ISBANNER = '2' 
+   <![CDATA[
+   AND to_char(start_date,'YYYYMMDD') <= #{today}
+   AND to_char(stop_date,'YYYYMMDD') >= #{today}
+   ]]>
+ </select>
+
+</mapper>

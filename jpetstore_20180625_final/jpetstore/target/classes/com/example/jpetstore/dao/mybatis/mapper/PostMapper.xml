@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.PostMapper">
+
+  <cache />
+ <resultMap id="Post" type="com.example.jpetstore.domain.Post" />
+ 
+  <select id="getReviewByUsername" resultType="Post">
+    SELECT
+      POSTID AS post_id,
+      SELLERID AS supp_id,
+      TITLE,
+      DATE_TIME AS datetime
+    FROM POST
+    WHERE POST.USERID = #{username}
+  </select>
+
+   <!-- 게시글 작성 -->
+   <insert id="insert" parameterType="Post">
+      <selectKey keyProperty="postid" resultType="int" order="AFTER">
+         select post_postid_seq.currval from dual
+      </selectKey>
+      INSERT INTO post ( postid, userid, sellerid, title, date_time, star_rating, image, content, view_count,like_count) 
+      VALUES   (
+                  seq_post.nextval,
+                  #{userid, jdbcType=VARCHAR},
+                  #{sellerid, jdbcType=VARCHAR},
+                  #{title, jdbcType=VARCHAR},  
+                  sysdate,
+                   0, 
+                  #{image, jdbcType=VARCHAR},
+                  #{content, jdbcType=VARCHAR},
+                   0,
+                   0
+                  )
+   </insert>
+
+   <!-- 게시글 리스트 -->
+   <select id="selectPage" parameterType="map"
+      resultType="Post">   
+   
+   select x.rnum, x.postid, x.userid, x.sellerid, x.title, x.date_time, x.star_rating, x.image, x.content, x.view_count, x.like_count
+   from(
+      select rownum as rnum, a.postid, a.userid, a.sellerid, a.title, a.date_time, a.star_rating, a.image, a.content, a.view_count, a.like_count
+         from ( SELECT postid, userid, sellerid, title, date_time, star_rating, image, content, view_count, like_count
+              FROM post order by postid desc
+         )a
+         where rownum &lt;=#{endNum})x
+      where rnum &gt;=#{startNum}
+   </select>
+   
+   <!-- 게시글 리스트 카운트 -->
+   <select id="countAll" resultType="int">
+      select count(*) from post
+   </select>
+   
+   <!-- 게시글 상세 -->
+   <select id="selectByPostId"  parameterType="int" resultMap="Post">
+      select * from post where postid=#{postid}
+   </select>
+   
+   <!-- 게시글 조회수 -->
+   <update id="updateHitcount" parameterType="map">
+      update post set view_count=#{view_count} where postid=#{postid}
+   </update>
+   
+   <!-- 게시글 삭제 -->
+   <delete id="delete" parameterType="int">
+      delete from post where postid=#{postid}
+   </delete>
+   
+   <!-- 게시글 수정 -->
+   <update id="update" parameterType="Post">
+      UPDATE post
+       
+       SET
+        title = #{title}, content=#{content},date_time=current_timestamp,image=#{image}
+      
+      WHERE
+          postid =#{postid}
+   </update>
+   
+   <!-- 게시글 추천수 -->
+   <update id="updateLikecount" parameterType="map" >
+      update post set like_count=#{like_count} where postid=#{postid}
+   </update>
+   
+
+</mapper>

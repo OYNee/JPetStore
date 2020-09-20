@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.QAndAMapper">
+
+  <cache />
+
+  <select id="getQuestionByUsername" resultType="QAndA">
+    SELECT
+      QUESTIONID AS id,
+      ITEMID AS itemId,
+      TITLE,
+      CONTENT,
+      DATE_TIME AS datetime
+    FROM QUESTION
+    WHERE USERID = #{username}
+  </select>
+  
+  <select id="getAnswerByUsername" resultType="QAndA">
+    SELECT
+      ANSWERID AS id,
+      ITEMID AS itemId,
+      TITLE,
+      ANSWER.CONTENT AS content,
+      ANSWER.DATE_TIME AS datetime
+    from ANSWER, QUESTION
+    WHERE ANSWER_WRITER = #{username}
+      AND QUESTION.QUESTIONID = ANSWER.QUESTIONID
+  </select>
+
+</mapper>

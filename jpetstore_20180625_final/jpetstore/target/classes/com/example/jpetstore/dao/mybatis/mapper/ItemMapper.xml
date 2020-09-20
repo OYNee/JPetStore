@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.ItemMapper">
+  <cache />
+
+  <select id="getItemListByProduct" resultType="Item" useCache="false">
+    SELECT
+      I.ITEMID,
+      I.PRODUCTID,
+      I.CATID AS "product.categoryId",
+      LISTPRICE,
+      UNITCOST,
+      SELLER AS supplierId,
+      I.PRODUCTID AS "product.productId",
+      NAME AS "product.name",
+      DESCR AS "product.description",
+      STATUS,
+      ATTR1 AS attribute1,
+      ATTR2 AS attribute2,
+      ATTR3 AS attribute3,
+      ATTR4 AS attribute4,
+      ATTR5 AS attribute5,
+      ISAUCTION,
+      QTY AS quantity,
+      IMAGE,
+      ITEMTITLE
+    FROM ITEM I, PRODUCT P, INVENTORY V
+    WHERE P.PRODUCTID = I.PRODUCTID
+      AND I.ITEMID = V.ITEMID
+      AND I.PRODUCTID = #{value}
+  </select>
+
+  <select id="getItem" resultType="Item" useCache="false">
+    SELECT
+      I.ITEMID,
+      I.PRODUCTID,
+      LISTPRICE,
+      UNITCOST,
+      SELLER,
+      I.PRODUCTID AS "product.productId",
+      NAME AS "product.name",
+      DESCR AS "product.description",
+      I.CATID AS "product.categoryId",
+      STATUS,
+      ATTR1 AS attribute1,
+      ATTR2 AS attribute2,
+      ATTR3 AS attribute3,
+      ATTR4 AS attribute4,
+      ATTR5 AS attribute5,
+      QTY AS quantity,
+      ISAUCTION,
+      ITEMTITLE,
+      ISAD AS adStatus
+    FROM ITEM I, INVENTORY V, PRODUCT P
+    WHERE P.PRODUCTID = I.PRODUCTID
+      AND I.ITEMID = V.ITEMID
+      AND I.ITEMID = #{value}
+  </select>
+
+  <select id="getInventoryQuantity" resultType="int" useCache="false">
+    SELECT QTY AS value
+    FROM INVENTORY
+    WHERE ITEMID = #{itemId}
+  </select>
+  
+  <!-- 180522 추가  -->
+  <select id="getItemListByUserid" resultType="MySales" useCache="false">
+    SELECT
+      ITEMID,
+      UNITCOST,
+      STATUS,
+      ISAD AS ADSTATUS,	<!-- 나중에 TEMP1 -> ADSTATUS로 바꾸기 -->
+      ISAUCTION
+    FROM
+      ITEM
+    WHERE
+      SELLER = #{userid,jdbcType=VARCHAR}
+  </select>
+  
+  <update id="updateAdStatus">
+    UPDATE ITEM
+    SET ISAD = #{param2}
+    WHERE ITEMID = #{param1}
+  </update>
+
+  <select id="searchItemList" resultType="Item" useCache="false">
+    SELECT
+      ITEMID,
+      SELLER,
+      UNITCOST,
+      ATTR1,
+      ATTR2,
+      ATTR3,
+      ATTR4,
+      ATTR5
+    FROM PRODUCT, ITEM
+    WHERE
+      PRODUCT.PRODUCTID = ITEM.PRODUCTID
+      <if test = "option == 'product'">
+      AND lower(name) like #{keywords}
+      	<include refid="price" />
+      </if>
+      <if test = "option == 'seller'">
+      AND lower(seller) like #{keywords}
+		<include refid="price" />
+      </if>
+  </select>
+  
+  <update id="updateInventoryQuantity">
+    UPDATE INVENTORY 
+    SET QTY = QTY - #{increment}
+    WHERE ITEMID = #{itemId}
+  </update>
+  
+  
+  <sql id="price">
+      <if test = "priceMax == -1">
+      	<![CDATA[ and unitcost >= #{priceMin} ]]>
+      	<include refid="orderby" />
+      </if>
+      <if test = "priceMax != -1">
+      	<![CDATA[ and unitcost >= #{priceMin} and unitcost <= #{priceMax} ]]> 
+      	<include refid="orderby" />
+      </if>
+  </sql>
+  
+  <sql id="orderby">
+  	<if test = "array == 'asc'">
+  		order by unitcost asc
+  	</if>
+  	<if test = "array == 'desc'">
+  		order by unitcost desc
+  	</if>
+  </sql>
+  
+  <!-- 여기까지  -->
+  
+  <select id="isAuctionByItem" resultType="int">
+  SELECT ISAUCTION FROM ITEM WHERE ITEMID= #{itemId}
+  </select>
+  
+  <!-- 180621 낙찰 관련 -->
+  <update id="updateItemStatus">
+  UPDATE ITEM SET STATUS=#{status} WHERE ITEMID=#{itemId}
+  </update>
+  
+   <!-- 180623 추가  -->
+  <delete id="deleteItemFromTable" parameterType="String">
+  DELETE FROM ITEM
+  WHERE ITEMID = #{itemId}
+  </delete>
+  
+  <delete id="deleteInventoryFromTable" parameterType="String">
+    DELETE FROM INVENTORY
+  	WHERE ITEMID = #{itemId}
+  </delete>
+  
+   <delete id="deleteQuestionFromTable" parameterType="String">
+    DELETE FROM Question
+  	WHERE ITEMID = #{itemId}
+  </delete>
+  
+  <delete id="deleteAuctionFromTable" parameterType="String">
+    DELETE FROM AUCTION
+  	WHERE AUCTIONID = #{auctionId}
+  </delete>
+  
+  <delete id="deleteBidFromTable" parameterType="String">
+    DELETE FROM BID
+  	WHERE AUCTIONID = #{auctionId}
+  </delete>
+    <update id="updateItemPrice">
+  UPDATE ITEM SET listcost=#{price} WHERE ITEMID=#{itemId}
+  </update>
+</mapper>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.AccountMapper">
+  <cache />
+
+  <select id="getAccountByUsername" resultType="Account" useCache="false">
+    SELECT SIGNON.USERNAME AS USER_ID,
+          ACCOUNT.EMAIL,
+          ACCOUNT.FIRSTNAME,
+          ACCOUNT.LASTNAME,
+          ACCOUNT.STATUS,
+          ACCOUNT.ADDR1 AS address1,
+          ACCOUNT.ADDR2 AS address2,
+          ACCOUNT.CITY,
+          ACCOUNT.STATE,
+          ACCOUNT.ZIP,
+          ACCOUNT.COUNTRY,
+          ACCOUNT.PHONE,
+          <!-- 성별, 마일리지와 계정의 상태 -->
+          ACCOUNT.SEX,
+          ACCOUNT.NOW_MILEAGE AS nowMileage,
+          ACCOUNT.ONBLACKLIST,
+          PROFILE.LANGPREF AS languagePreference,
+          PROFILE.FAVCATEGORY AS favouriteCategoryId,
+          PROFILE.MYLISTOPT AS listOption,
+          PROFILE.BANNEROPT AS bannerOption,
+          BANNER.BANNERNAME
+    FROM ACCOUNT, PROFILE, SIGNON, BANNER
+    WHERE ACCOUNT.USERID = #{username}
+      AND SIGNON.USERNAME = ACCOUNT.USERID
+      AND PROFILE.USERID = ACCOUNT.USERID
+      AND PROFILE.FAVCATEGORY = BANNER.FAVCATEGORY
+  </select>
+
+  <select id="getAccountByUsernameAndPassword" resultType="Account" useCache="false">
+  <!-- 180524 alias 추가 -->
+    SELECT SIGNON.USERNAME AS USER_ID,
+      ACCOUNT.EMAIL,
+      ACCOUNT.FIRSTNAME,
+      ACCOUNT.LASTNAME,
+      ACCOUNT.STATUS,
+      ACCOUNT.ADDR1 AS address1,
+      ACCOUNT.ADDR2 AS address2,
+      ACCOUNT.CITY,
+      ACCOUNT.STATE,
+      ACCOUNT.ZIP,
+      ACCOUNT.COUNTRY,
+      ACCOUNT.PHONE,
+      ACCOUNT.SEX,
+      ACCOUNT.NOW_MILEAGE AS nowMileage,
+      ACCOUNT.ONBLACKLIST,
+      PROFILE.LANGPREF AS languagePreference,
+      PROFILE.FAVCATEGORY AS favouriteCategoryId,
+      PROFILE.MYLISTOPT AS listOption,
+      PROFILE.BANNEROPT AS bannerOption,
+      BANNER.BANNERNAME
+    FROM ACCOUNT, PROFILE, SIGNON, BANNER
+    WHERE ACCOUNT.USERID = #{param1}
+      AND SIGNON.PASSWORD = #{param2}
+      AND SIGNON.USERNAME = ACCOUNT.USERID
+      AND PROFILE.USERID = ACCOUNT.USERID
+      AND PROFILE.FAVCATEGORY = BANNER.FAVCATEGORY
+  </select>
+
+  <select id="getUsernameList" resultType="java.lang.String" useCache="false">
+    SELECT USERNAME AS VALUE FROM SIGNON
+  </select>
+
+  <update id="updateAccount" parameterType="Account">
+    UPDATE ACCOUNT SET
+      EMAIL = #{email},
+      FIRSTNAME = #{firstName},
+      LASTNAME = #{lastName},
+      STATUS = #{status},
+      ADDR1 = #{address1},
+      ADDR2 = #{address2,jdbcType=VARCHAR},
+      CITY = #{city},
+      STATE = #{state},
+      ZIP = #{zip},
+      COUNTRY = #{country},
+      PHONE = #{phone},
+      SEX = #{sex}
+    WHERE USERID = #{user_id}
+  </update>
+
+  <!-- 회원가입시 마일리지는 0, 계정상태 일반회원 -->
+  <insert id="insertAccount" parameterType="Account">
+    INSERT INTO ACCOUNT
+      (EMAIL, FIRSTNAME, LASTNAME, STATUS, ADDR1, ADDR2, CITY, STATE, ZIP, COUNTRY, PHONE, USERID, NOW_MILEAGE, ONBLACKLIST, PASSWORD, SEX)
+    VALUES
+      (#{email}, #{firstName}, #{lastName}, #{status}, #{address1}, #{address2,jdbcType=VARCHAR}, #{city}, #{state}, #{zip}, #{country}, #{phone}, #{user_id}, 0, 0, #{password}, #{sex} )
+  </insert>
+
+  <!--  
+  TODO MyBatis 3 does not map booleans to integers
+  <update id="updateProfile" parameterType="Account">
+    UPDATE PROFILE SET
+      LANGPREF = #{languagePreference},
+      FAVCATEGORY = #{favouriteCategoryId},
+      MYLISTOPT = #{listOption},
+      BANNEROPT = #{bannerOption}
+    WHERE USERID = #{username}
+  </update>
+  -->
+
+  <update id="updateProfile" parameterType="Account">
+    UPDATE PROFILE SET
+      LANGPREF = #{languagePreference},
+      FAVCATEGORY = #{favouriteCategoryId}
+    WHERE USERID = #{user_id}
+  </update>
+
+  <!--  
+  TODO MyBatis 3 does not map booleans to integers
+  <insert id="insertProfile" parameterType="Account">
+    INSERT INTO PROFILE (LANGPREF, FAVCATEGORY, MYLISTOPT, BANNEROPT, USERID)
+    VALUES (#{languagePreference}, #{favouriteCategoryId}, #{listOption}, #{bannerOption}, #{username})
+  </insert>
+  -->
+
+  <insert id="insertProfile" parameterType="Account">
+    INSERT INTO PROFILE (LANGPREF, FAVCATEGORY, USERID)
+    VALUES (#{languagePreference}, #{favouriteCategoryId}, #{user_id})
+  </insert>
+
+  <update id="updateSignon" parameterType="Account">
+    UPDATE SIGNON SET PASSWORD = #{password}
+    WHERE USERNAME = #{user_id}
+  </update>
+
+  <insert id="insertSignon" parameterType="Account">
+    INSERT INTO SIGNON (PASSWORD,USERNAME)
+    VALUES (#{password}, #{user_id})
+  </insert>
+  
+  <!-- 20180530 추가 -->
+  
+  <update id="updateBlackList">
+  	UPDATE ACCOUNT
+  	SET ONBLACKLIST = #{param2}
+  	WHERE USERID = #{param1}
+  </update>
+    
+  <select id="getUserOnBlackList" resultType="java.lang.String">
+    SELECT USERID
+    FROM ACCOUNT
+    WHERE ONBLACKLIST = 1
+  </select>
+  
+  <update id="updateMileage">
+    UPDATE ACCOUNT SET NOW_MILEAGE = (SELECT NOW_MILEAGE FROM ACCOUNT WHERE USERID=#{param1}) + #{param2} WHERE USERID=#{param1}
+  </update>
+  
+</mapper>

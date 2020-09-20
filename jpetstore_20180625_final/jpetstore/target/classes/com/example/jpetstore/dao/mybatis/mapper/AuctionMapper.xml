@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- mypage에서 쓰이는 mapper -->
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.AuctionMapper">
+
+  <cache />
+
+  <select id="getAuctionItemsByUsername" resultType="Bid"><!-- bidList로 이름 바꾸는게 좋을 듯 -->
+    SELECT
+      AUCTION.AUCTIONID AS auction_id,
+      ITEMID,
+      BID_PRICE,
+      BID_DATE
+    FROM AUCTION, BID
+    WHERE AUCTION.AUCTIONID = BID.AUCTIONID
+      AND BIDDER = #{bidder}
+      ORDER BY BID_DATE DESC
+  </select>
+
+  <select id="getHighestBidPrice" resultType="int">
+    SELECT
+      MAX(BID_PRICE)
+    FROM BID
+    WHERE AUCTIONID = #{auctionId}
+  </select>
+  <!-- 180621 추가 -->
+    <select id="getBidPriceByUsername" resultType="Integer" useCache="false">
+    SELECT
+      BID_PRICE
+    FROM BID
+    WHERE
+      BIDDER = #{bidder}
+      AND AUCTIONID = #{auctionId}
+  </select>
+  
+   
+  <!-- 180624 경매 차트를 위한 값 -->
+  <select id="bidValuesForChart" resultType="Bid" useCache="false">
+	select max(bid_price) as bid_price, bid_date
+	from bid
+	where auctionid=#{auctionId}
+	group by bid_date
+	order by bid_date asc
+  </select>
+  
+  <!-- 경매 참여하기 페이지에서 차트 띄우기 위한 값  -->
+	 <select id="getBidByAuctionIdASC" resultType="Bid" useCache="false">
+    SELECT
+      BIDDER AS bidder,
+      BID_PRICE
+    FROM BID
+	WHERE
+	  AUCTIONID = #{auctionId} ORDER BY BID_PRICE ASC
+	
+  </select>
+
+</mapper>
